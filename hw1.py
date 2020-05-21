@@ -71,7 +71,7 @@ def posterior(x, mean, std, prior):
     return np.prod(likelyhood(x, mean, std))*prior
 
 result_list = []
-for item in X_train:
+for item in X_test:
     p1 = posterior(item, mean_class1, std_class1, prior_class1)
     p2 = posterior(item, mean_class2, std_class2, prior_class2)
     p3 = posterior(item, mean_class3, std_class3, prior_class3)
@@ -86,7 +86,7 @@ for item in X_train:
 
 # %%
 count = 0
-for label, predict in zip(y_train, result_list):
+for label, predict in zip(y_test, result_list):
     # print(label, predict)
     if label == predict:
         count += 1
