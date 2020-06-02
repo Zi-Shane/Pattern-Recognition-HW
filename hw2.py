@@ -102,52 +102,52 @@ print("class3 and class1 upper bound: ", up_c3_c1[0,0])
 # ## 3. calculate mean, standard deviateion, prior
 
 # %%
-mean_class1 = np.mean(X_class1, axis=0)
-mean_class2 = np.mean(X_class2, axis=0)
-mean_class3 = np.mean(X_class3, axis=0)
+# mean_class1 = np.mean(X_class1, axis=0)
+# mean_class2 = np.mean(X_class2, axis=0)
+# mean_class3 = np.mean(X_class3, axis=0)
 
-std_class1 = np.std(X_class1, axis=0)
-std_class2 = np.std(X_class2, axis=0)
-std_class3 = np.std(X_class3, axis=0)
+# std_class1 = np.std(X_class1, axis=0)
+# std_class2 = np.std(X_class2, axis=0)
+# std_class3 = np.std(X_class3, axis=0)
 
-prior_class1 = X_class1.shape[0] / X_train.shape[0]
-prior_class2 = X_class2.shape[0] / X_train.shape[0]
-prior_class3 = X_class3.shape[0] / X_train.shape[0]
-
-
-#%% [markdown]
-# ## 4. calculate posterior
-
-# %%
-def likelyhood(x, mean, sigma):
-    return np.exp(-(x-mean)**2/(2*sigma**2))*(1/(np.sqrt(2*np.pi)*sigma))
-
-def posterior(x, mean, std, prior):
-    return np.prod(likelyhood(x, mean, std))*prior
-
-result_list = []
-for item in X_test:
-    p1 = posterior(item, mean_class1, std_class1, prior_class1)
-    p2 = posterior(item, mean_class2, std_class2, prior_class2)
-    p3 = posterior(item, mean_class3, std_class3, prior_class3)
-
-    if p1 > p2 and p1 > p3:
-        result_list.append(1)
-    elif p2 > p1 and p2 > p3:
-        result_list.append(2)
-    else:
-        result_list.append(3)
+# prior_class1 = X_class1.shape[0] / X_train.shape[0]
+# prior_class2 = X_class2.shape[0] / X_train.shape[0]
+# prior_class3 = X_class3.shape[0] / X_train.shape[0]
 
 
-# %%
-count = 0
-for label, predict in zip(y_test, result_list):
-    # print(label, predict)
-    if label == predict:
-        count += 1
+# #%% [markdown]
+# # ## 4. calculate posterior
 
-accuracy = count / y_train.shape[0]
-print("accuracy: ", accuracy)
+# # %%
+# def likelyhood(x, mean, sigma):
+#     return np.exp(-(x-mean)**2/(2*sigma**2))*(1/(np.sqrt(2*np.pi)*sigma))
+
+# def posterior(x, mean, std, prior):
+#     return np.prod(likelyhood(x, mean, std))*prior
+
+# result_list = []
+# for item in X_test:
+#     p1 = posterior(item, mean_class1, std_class1, prior_class1)
+#     p2 = posterior(item, mean_class2, std_class2, prior_class2)
+#     p3 = posterior(item, mean_class3, std_class3, prior_class3)
+
+#     if p1 > p2 and p1 > p3:
+#         result_list.append(1)
+#     elif p2 > p1 and p2 > p3:
+#         result_list.append(2)
+#     else:
+#         result_list.append(3)
+
+
+# # %%
+# count = 0
+# for label, predict in zip(y_test, result_list):
+#     # print(label, predict)
+#     if label == predict:
+#         count += 1
+
+# accuracy = count / y_train.shape[0]
+# print("accuracy: ", accuracy)
 
 # %%
 # class0_data, class1_data, class2_data = [], [], []
