@@ -84,6 +84,9 @@ for item in X_test:
         result_list.append(3)
 
 
+#%% [markdown]
+# ## 5. Result
+
 # %%
 count = 0
 for label, predict in zip(y_test, result_list):
