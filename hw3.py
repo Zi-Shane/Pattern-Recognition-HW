@@ -18,7 +18,8 @@ IMG_SIZE = 128
 # for category in CATEGORIES:  # do dogs and cats
 #     path = os.path.join(DATADIR,category)  # create path to dogs and cats
 #     for img in os.listdir(path):  # iterate over each image per dogs and cats
-#         img_array = cv2.imread(os.path.join(path,img) ,cv2.IMREAD_GRAYSCALE)  # convert to array
+#         img_array = cv2.imread(os.path.join(path,img) ,cv2.IMREAD_COLOR)  # convert to array
+#         # img_array = cv2.imread(os.path.join(path,img) ,cv2.IMREAD_GRAYSCALE)  # convert to array
 #         plt.imshow(img_array, cmap='gray')  # graph it
 # #         plt.show()  # display!
 
@@ -37,7 +38,7 @@ def create_data():
 
         for img in os.listdir(path):  # iterate over each image per dogs and cats
             try:
-                img_array = cv2.imread(os.path.join(path,img) ,cv2.IMREAD_GRAYSCALE)  # convert to array
+                img_array = cv2.imread(os.path.join(path,img) ,cv2.IMREAD_COLOR)  # convert to array
                 data.append([img_array, class_num])  # add this to our data
             except Exception as e:  # in the interest in keeping the output clean...
                 pass
@@ -48,8 +49,8 @@ def create_data():
 
 create_data()
 
-print(len(data))
-print(data[19:25])
+# print(len(data))
+# print(data[0])
 
 
 #%%
@@ -67,7 +68,7 @@ test = data[train_size:]
 #%%
 # print(len(test))
 # for sample in test[:60]:
-#     print(sample[1])
+#     print(sample[0][0][0])
 
 #%%
 X_train = []
@@ -85,50 +86,84 @@ for features,label in test:
     y_train.append(label)
 
 
-X_train = np.array(X_train).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
-X_test = np.array(X_test).reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+# X_train = np.array(X_train).reshape(IMG_SIZE, IMG_SIZE, 3)
+X_train = np.array(X_train)
+X_test = np.array(X_test)
+y_train = np.array(y_train)
+y_test = np.array(y_test)
 
 #%%
-print(X_train)
+X_train = X_train/255.
+print(X_train.shape[1:])
+#%%
+# print(X_train[0])
 
 #%%
-mport tensorflow as tf
+import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
 
-
 #%%
-X_train = X_train/255.0
-print(X_train.shape[1:])
+def solve_cudnn_error():
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            # Currently, memory growth needs to be the same across GPUs
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        except RuntimeError as e:
+            # Memory growth must be set before GPUs have been initialized
+            print(e)
+
+solve_cudnn_error()
+
+
 
 #%%
 model = Sequential()
 
-model.add(Conv2D(256, (3, 3), input_shape=X_train.shape[1:]))
+model.add(Conv2D(32, (3, 3), padding="same",  input_shape=(3, IMG_SIZE, IMG_SIZE)))
 model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(MaxPooling2D(pool_size=(2)))
 
-model.add(Conv2D(256, (3, 3)))
+model.add(Conv2D(32, (3, 3)))
 model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(MaxPooling2D(pool_size=(2)))
 
 model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
-model.add(Dense(64))
+model.add(Dense(64, activation="relu"))
 
-model.add(Dense(1))
-model.add(Activation('sigmoid'))
+model.add(Dense(3))
+model.add(Activation('softmax'))
 
+model.summary()
 # tensorboard = TensorBoard(log_dir="logs/{}".format(NAME))
 
-model.compile(loss='binary_crossentropy',
-              optimizer='adam',
-              metrics=['accuracy'],
-              )
+# Hyper Parameters
+epochs = 30
+batch_size = 2
+lr = 0.0001
+decay = 1e-6
+optimizer = tf.optimizers.RMSprop(lr=lr, decay=decay)
+model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+# model.compile(loss='binary_crossentropy',
+#               optimizer='adam',
+#               metrics=['accuracy'],
+#               )
 
-model.fit(X_train, y_train,
-          batch_size=64,
-          epochs=3,
-          validation_split=0.3)
-session.close()
+model.fit(
+    X_train,
+    y_train,
+    batch_size=batch_size,
+    epochs=epochs, 
+    validation_data=(X_test, y_test),
+)
+
+y_pred = model.predict(X_test)
+
+
+# %%
